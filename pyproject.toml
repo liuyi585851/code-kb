@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codekb"
+version = "0.1.0"
+description = "Code-KB — a cite-or-die retrieval & navigation service for a code monorepo and its docs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Code-KB contributors" }]
+keywords = ["rag", "retrieval", "knowledge-base", "code-search", "bm25", "qdrant", "mcp"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Text Processing :: Indexing",
+]
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+# FastAPI 服务 + Web 控制台。
+api = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
+# Postgres 原子存储驱动。
+storage = [
+    "psycopg[binary]>=3.2",
+]
+# 可选的生成式回答 SDK。不是默认依赖:不装 anthropic 时,抽取式
+# 基线和整套测试照样能跑。
+llm = [
+    "anthropic>=0.40",
+]
+# 可选:用 LangChain / LangGraph agent 驱动 Code-KB(见 examples/)。
+# 服务端和测试都用不到。
+agents = [
+    "langchain>=0.3",
+    "langgraph>=0.2",
+]
+
+[project.scripts]
+codekb = "codekb.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

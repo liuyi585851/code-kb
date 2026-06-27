@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BOOTSTRAP_RUN_DIR="${CODEKB_RUN_DIR:-/data/codekb}"
+ENV_FILE="${CODEKB_ENV_FILE:-$BOOTSTRAP_RUN_DIR/state/p5-secrets.env}"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
+APP_ROOT="${CODEKB_APP_ROOT:-/data/codekb/current}"
+VENV="${CODEKB_VENV:-/data/codekb/venv}"
+RUN_DIR="${CODEKB_RUN_DIR:-$BOOTSTRAP_RUN_DIR}"
+LOG_DIR="${CODEKB_LOG_DIR:-/data/codekb/logs}"
+HOST="${CODEKB_HOST:-0.0.0.0}"
+PORT="${CODEKB_PORT:-8080}"
+FIXTURES="${CODEKB_FIXTURES:-$APP_ROOT/data/fixtures/sample_corpus.jsonl}"
+ALIASES="${CODEKB_ALIASES:-$APP_ROOT/data/entity_aliases.yaml}"
+REGISTRY="${CODEKB_REGISTRY:-$APP_ROOT/docs/kb-registry.draft.yaml}"
+RETRIEVER="${CODEKB_RETRIEVER:-bm25-lite}"
+INDEX_DB="${CODEKB_INDEX_DB:-$RUN_DIR/local-index/codekb.sqlite3}"
+TRACE_LOG="${CODEKB_TRACE_LOG:-$LOG_DIR/ask-trace.jsonl}"
+FEEDBACK_LOG="${CODEKB_FEEDBACK_LOG:-$LOG_DIR/feedback.jsonl}"
+CANDIDATE_STORE="${CODEKB_CANDIDATE_STORE:-$RUN_DIR/state/candidates.json}"
+PENDING_DOCS_DIR="${CODEKB_PENDING_DOCS_DIR:-$RUN_DIR/pending-docs}"
+PUBLISH_OUTBOX="${CODEKB_PUBLISH_OUTBOX:-$RUN_DIR/outbox/wiki-publish-plan.jsonl}"
+PUBLISH_REPORT="${CODEKB_PUBLISH_REPORT:-$LOG_DIR/wiki-publish-report.json}"
+GOVERNANCE_REPORT="${CODEKB_GOVERNANCE_REPORT:-$LOG_DIR/governance-report.json}"
+GOVERNANCE_POLICY="${CODEKB_GOVERNANCE_POLICY:-$APP_ROOT/docs/governance-policy.draft.yaml}"
+GOVERNANCE_STATE="${CODEKB_GOVERNANCE_STATE:-$RUN_DIR/state/governance-state.json}"
+GOVERNANCE_WEEKLY_REPORT="${CODEKB_GOVERNANCE_WEEKLY_REPORT:-$LOG_DIR/governance-weekly-report.md}"
+GOVERNANCE_TICKET_OUTBOX="${CODEKB_GOVERNANCE_TICKET_OUTBOX:-$RUN_DIR/outbox/governance-ticket-plan.jsonl}"
+GOVERNANCE_TICKET_REPORT="${CODEKB_GOVERNANCE_TICKET_REPORT:-$LOG_DIR/governance-ticket-report.json}"
+PID_FILE="${CODEKB_PID_FILE:-$RUN_DIR/api.pid}"
+LOG_FILE="${CODEKB_LOG_FILE:-$LOG_DIR/api.log}"
+
+is_running() {
+  [[ -s "$PID_FILE" ]] || return 1
+  local pid
+  pid="$(cat "$PID_FILE")"
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+  kill -0 "$pid" 2>/dev/null
+}
+
+start() {
+  if is_running; then
+    echo "codekb-api already running pid=$(cat "$PID_FILE")"
+    return 0
+  fi
+
+  mkdir -p "$RUN_DIR" "$LOG_DIR" "$(dirname "$CANDIDATE_STORE")" "$PENDING_DOCS_DIR" "$(dirname "$PUBLISH_OUTBOX")" "$(dirname "$PUBLISH_REPORT")" "$(dirname "$GOVERNANCE_REPORT")" "$(dirname "$GOVERNANCE_STATE")" "$(dirname "$GOVERNANCE_WEEKLY_REPORT")" "$(dirname "$GOVERNANCE_TICKET_OUTBOX")" "$(dirname "$GOVERNANCE_TICKET_REPORT")"
+  cd "$APP_ROOT"
+  local index_env=()
+  if [[ -f "$INDEX_DB" ]]; then
+    index_env+=(CODEKB_INDEX_DB="$INDEX_DB")
+  fi
+
+  nohup env \
+    PYTHONPATH="$APP_ROOT/src" \
+    CODEKB_FIXTURES="$FIXTURES" \
+    CODEKB_ALIASES="$ALIASES" \
+    CODEKB_REGISTRY="$REGISTRY" \
+    CODEKB_RETRIEVER="$RETRIEVER" \
+    CODEKB_TRACE_LOG="$TRACE_LOG" \
+    CODEKB_FEEDBACK_LOG="$FEEDBACK_LOG" \
+    CODEKB_CANDIDATE_STORE="$CANDIDATE_STORE" \
+    CODEKB_PENDING_DOCS_DIR="$PENDING_DOCS_DIR" \
+    CODEKB_PUBLISH_OUTBOX="$PUBLISH_OUTBOX" \
+    CODEKB_PUBLISH_REPORT="$PUBLISH_REPORT" \
+    CODEKB_GOVERNANCE_REPORT="$GOVERNANCE_REPORT" \
+    CODEKB_GOVERNANCE_POLICY="$GOVERNANCE_POLICY" \
+    CODEKB_GOVERNANCE_STATE="$GOVERNANCE_STATE" \
+    CODEKB_GOVERNANCE_WEEKLY_REPORT="$GOVERNANCE_WEEKLY_REPORT" \
+    CODEKB_GOVERNANCE_TICKET_OUTBOX="$GOVERNANCE_TICKET_OUTBOX" \
+    CODEKB_GOVERNANCE_TICKET_REPORT="$GOVERNANCE_TICKET_REPORT" \
+    CODEKB_ENABLE_GOVERNANCE_WRITE="${CODEKB_ENABLE_GOVERNANCE_WRITE:-0}" \
+    CODEKB_ENABLE_WIKI_WRITE="${CODEKB_ENABLE_WIKI_WRITE:-0}" \
+    "${index_env[@]}" \
+    "$VENV/bin/python" -m uvicorn codekb.api:create_app \
+      --factory --host "$HOST" --port "$PORT" \
+    >> "$LOG_FILE" 2>&1 &
+
+  echo "$!" > "$PID_FILE"
+  sleep 1
+  if ! is_running; then
+    echo "codekb-api failed to start; see $LOG_FILE" >&2
+    return 1
+  fi
+  echo "codekb-api started pid=$(cat "$PID_FILE") port=$PORT"
+}
+
+stop() {
+  if ! is_running; then
+    echo "codekb-api not running"
+    rm -f "$PID_FILE"
+    return 0
+  fi
+
+  local pid
+  pid="$(cat "$PID_FILE")"
+  kill "$pid"
+  for _ in $(seq 1 20); do
+    if ! kill -0 "$pid" 2>/dev/null; then
+      rm -f "$PID_FILE"
+      echo "codekb-api stopped"
+      return 0
+    fi
+    sleep 0.5
+  done
+
+  echo "codekb-api did not stop within timeout pid=$pid" >&2
+  return 1
+}
+
+status() {
+  if is_running; then
+    echo "codekb-api running pid=$(cat "$PID_FILE") port=$PORT"
+  else
+    echo "codekb-api stopped"
+    return 1
+  fi
+}
+
+health() {
+  curl -sS "http://127.0.0.1:$PORT/healthz"
+  echo
+}
+
+case "${1:-}" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  status)
+    status
+    ;;
+  health)
+    health
+    ;;
+  *)
+    echo "usage: $0 {start|stop|restart|status|health}" >&2
+    exit 2
+    ;;
+esac

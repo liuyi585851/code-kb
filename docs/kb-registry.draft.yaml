@@ -1,0 +1,129 @@
+version: 0.1
+updated_at: "2026-06-11"
+status: draft
+
+defaults:
+  retrieval:
+    dense_top_k: 30
+    sparse_top_k: 30
+    rrf_top_k: 20
+    rerank_top_k: 4
+  context_budget:
+    max_atoms: 4
+    max_atom_tokens: 800
+    contextual_prefix_tokens: 200
+  answer_policy:
+    citation_required: true
+    refuse_without_citation: true
+  layers_for_production_answer:
+    - L2
+    - L3
+
+sub_kbs:
+  - id: release
+    name: 发布与版本
+    owner_group: release
+    status: pilot
+    description: 发布、先遣、模板迁移、构建流水线 FAQ。
+    source_docs:
+      - system: wiki
+        docid: "1000000013"
+        title: "副玩法-示例国内正式=>先遣模板迁移流水线操作手册"
+        mode: deep
+        priority: P0
+      - system: wiki
+        docid: "1000000011"
+        title: "构建及流水线问题查询入口 FAQ"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000012"
+        title: "🚩【示例】版本管理"
+        mode: metadata
+        priority: P1
+      - system: wiki
+        docid: "1000000016"
+        title: "《示例》先遣服问卷配置流程"
+        mode: metadata
+        priority: P1
+
+  - id: testing
+    name: 自动化测试与 UDT
+    owner_group: qa_testing
+    status: pilot
+    description: UDT 任务、环境变量、日志排查、多机联调。
+    source_docs:
+      - system: wiki
+        docid: "1000000014"
+        title: "示例UDT自动化测试使用说明"
+        mode: deep
+        priority: P0
+
+  - id: incident
+    name: 线上问题与复盘
+    owner_group: sre_testing
+    status: pilot
+    description: 线上事故复盘、历史相似问题、trigger/root cause/fix/detection 四元组。
+    source_docs:
+      - system: wiki
+        docid: "1000000004"
+        title: "🚩【示例】线上问题复盘"
+        mode: enumerate_children
+        priority: P0
+      - system: wiki
+        docid: "1000000003"
+        title: "20231215-示例上线问题复盘"
+        mode: deep_candidate
+        priority: P0
+      - system: wiki
+        docid: "1000000008"
+        title: "2024年4月30日热更新配置客户端服务器依赖问题复盘"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000009"
+        title: "2024年5月16日-竞速关卡组队模式AI到终点不能正常结束的bug"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000005"
+        title: "匹配成功进入局内卡死 问题分析"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000006"
+        title: "玩家头顶聊天消息显示不全和称号显示异常问题分析"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000010"
+        title: "Development版本 IM组队拉起 在加载动画界面卡很长时间Debug"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000018"
+        title: "20250829 “甜酷禁区祈愿异常” 事故复盘文档"
+        mode: deep_candidate
+        priority: P1
+      - system: wiki
+        docid: "1000000019"
+        title: "20250819 云游戏版本更新复盘"
+        mode: metadata
+        priority: P1
+      - system: wiki
+        docid: "1000000020"
+        title: "20251106 热更后农场&Moba异常复盘"
+        mode: metadata
+        priority: P1
+
+  - id: owner
+    name: 模块与接口人
+    owner_group: engineering
+    status: later
+    description: 模块接口人动态视图。P0 仅记录静态表风险，P4 开始落地。
+    source_docs:
+      - system: wiki
+        docid: "1000000015"
+        title: "示例模块接口人一览表-20241217"
+        mode: metadata
+        priority: P4

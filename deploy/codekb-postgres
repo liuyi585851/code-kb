@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="${CODEKB_RUN_DIR:-/data/codekb}"
+PGDATA="${CODEKB_POSTGRES_DATA:-$BASE/postgres/data}"
+LOG="${CODEKB_POSTGRES_LOG:-$BASE/logs/postgres.log}"
+
+case "${1:-status}" in
+  start)
+    touch "$LOG"
+    chown postgres:postgres "$LOG" 2>/dev/null || true
+    runuser -u postgres -- pg_ctl -D "$PGDATA" -l "$LOG" start
+    ;;
+  stop)
+    runuser -u postgres -- pg_ctl -D "$PGDATA" stop -m fast
+    ;;
+  restart)
+    runuser -u postgres -- pg_ctl -D "$PGDATA" restart -m fast -l "$LOG"
+    ;;
+  status)
+    runuser -u postgres -- pg_ctl -D "$PGDATA" status
+    ;;
+  *)
+    echo "usage: $0 {start|stop|restart|status}" >&2
+    exit 2
+    ;;
+esac

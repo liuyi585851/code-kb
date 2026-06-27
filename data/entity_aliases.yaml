@@ -1,0 +1,26 @@
+aliases:
+  先遣:
+    - xianqian
+    - 先锋
+    - 先遣服
+  国内正式:
+    - 正式服
+    - 国内正式服
+    - ob
+  流水线:
+    - CI
+    - pipeline
+  loading卡死:
+    - 局内卡死
+    - 进局卡住
+    - loading 卡死
+    - 卡在加载动画
+  非wifi下载:
+    - 移动网络下载
+    - 4g下载
+    - 5g下载
+    - liteapp下载失败
+  设备序号:
+    - device_seq
+    - 设备编号
+    - 多机序号

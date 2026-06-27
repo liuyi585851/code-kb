@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="${CODEKB_RUN_DIR:-/data/codekb}"
+PID="${CODEKB_QDRANT_PID_FILE:-$BASE/qdrant/qdrant.pid}"
+LOG="${CODEKB_QDRANT_LOG:-$BASE/logs/qdrant.log}"
+BIN="${CODEKB_QDRANT_BIN:-$BASE/qdrant/bin/qdrant}"
+CONFIG="${CODEKB_QDRANT_CONFIG:-$BASE/qdrant/config.yaml}"
+
+is_running() {
+  [[ -s "$PID" ]] || return 1
+  local pid
+  pid="$(cat "$PID")"
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+  kill -0 "$pid" 2>/dev/null
+}
+
+case "${1:-status}" in
+  start)
+    if is_running; then
+      echo "qdrant already running pid=$(cat "$PID")"
+      exit 0
+    fi
+    mkdir -p "$(dirname "$PID")" "$(dirname "$LOG")"
+    cd "$BASE/qdrant"
+    nohup "$BIN" --config-path "$CONFIG" > "$LOG" 2>&1 &
+    echo $! > "$PID"
+    echo "qdrant started pid=$(cat "$PID") port=6333"
+    ;;
+  stop)
+    if is_running; then
+      kill "$(cat "$PID")"
+      for _ in $(seq 1 20); do
+        is_running || break
+        sleep 0.2
+      done
+      rm -f "$PID"
+      echo "qdrant stopped"
+    else
+      rm -f "$PID"
+      echo "qdrant not running"
+    fi
+    ;;
+  restart)
+    "$0" stop
+    "$0" start
+    ;;
+  status)
+    if is_running; then
+      echo "qdrant running pid=$(cat "$PID") port=6333"
+    else
+      echo "qdrant not running"
+      exit 1
+    fi
+    ;;
+  *)
+    echo "usage: $0 {start|stop|restart|status}" >&2
+    exit 2
+    ;;
+esac

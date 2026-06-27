@@ -1,0 +1,17 @@
+# Code-KB 的 pre-commit 钩子。质量门禁是个本地、不需要凭证的钩子,
+# 可以离线跑。用 `pre-commit install` 安装。
+repos:
+  - repo: local
+    hooks:
+      - id: unittest
+        name: unittest suite
+        entry: bash -c "PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py'"
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: quality-gate
+        name: answer quality gate
+        entry: bash -c "PYTHONPATH=src python3 -m codekb.cli quality-check --skip-missing-expected"
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

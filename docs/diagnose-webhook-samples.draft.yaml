@@ -1,0 +1,150 @@
+version: 1
+updated_at: 2026-06-11
+status: draft
+
+# 等拿到真实的 code review、CI、MR、issue tracker、Crash 或通用 webhook 样例后,
+# 用它们替换这里的合成 payload。这套样例刻意做了脱敏:经过归一化和脱敏处理后,
+# forbidden_values 不应再出现在校验器的输出里。
+samples:
+  - name: code_review_build_failed
+    source: code_review
+    expected_valid: true
+    expected_query_ready: true
+    expected_context:
+      surface: code_review
+      repo: ym/app
+      branch: feature/udt
+      error_code: DEVICE_SEQ
+    expected_sub_kbs: [testing]
+    forbidden_values: [code_review-token-secret, code_review-password-secret]
+    payload:
+      code_review:
+        repo_path: ym/app
+        branch: feature/udt
+        pipeline:
+          id: cb-build-001
+          url: https://code_review.example/build/1?access_token=code_review-token-secret
+        job:
+          name: udt-ci
+        error:
+          code: DEVICE_SEQ
+          message: DEVICE_SEQ 构建失败 password=code_review-password-secret
+        log_tail: missing DEVICE_SEQ
+        event_name: build_failed
+        kb_area: [testing]
+
+  - name: ci_pipeline_failed
+    source: ci
+    expected_valid: true
+    expected_query_ready: true
+    expected_context:
+      surface: ci
+      repo: ym/app
+      branch: main
+      error_code: DEVICE_SEQ
+    expected_sub_kbs: [testing]
+    forbidden_values: [ci-token-secret, ci-client-secret]
+    payload:
+      ci:
+        repository:
+          path: ym/app
+        branch: main
+        pipeline:
+          id: pipeline-456
+          url: https://ci.example/pipeline/456?token=ci-token-secret
+        job:
+          name: udt-ci
+          log: '{"client_secret":"ci-client-secret","message":"missing DEVICE_SEQ"}'
+        failure:
+          code: DEVICE_SEQ
+          message: DEVICE_SEQ 参数缺失
+        event: pipeline_failed
+      sub_kbs: [testing]
+
+  - name: mr_review_blocked
+    source: mr
+    expected_valid: true
+    expected_query_ready: true
+    expected_context:
+      surface: mr
+      repo: ym/app
+      branch: feature/device-seq
+      mr_id: "123"
+    expected_sub_kbs: [release]
+    forbidden_values: [mr-signature-secret]
+    payload:
+      mr:
+        repository:
+          path: ym/app
+        source_branch: feature/device-seq
+        iid: "123"
+        title: DEVICE_SEQ MR 检查失败
+        description: signature=mr-signature-secret
+        web_url: https://git.example/ym/app/merge_requests/123?signature=mr-signature-secret
+        event: merge_request
+      sub_kbs: [release]
+
+  - name: issue_tracker_bug_created
+    source: issue_tracker
+    expected_valid: true
+    expected_query_ready: true
+    expected_context:
+      surface: issue_tracker
+      repo: ym/app
+      error_code: BUG-123
+    expected_sub_kbs: [testing]
+    forbidden_values: [issue_tracker-user-ticket-secret, issue_tracker-token-secret]
+    payload:
+      issue_tracker:
+        project:
+          name: ym/app
+        bug:
+          id: BUG-123
+          title: DEVICE_SEQ 构建失败
+          description: '{"user_ticket":"issue_tracker-user-ticket-secret","detail":"DEVICE_SEQ"}'
+          url: https://issue_tracker.example/bug/123?token=issue_tracker-token-secret
+        priority: P1
+        status: new
+      sub_kbs: [testing]
+
+  - name: crash_issue_created
+    source: crash
+    expected_valid: true
+    expected_query_ready: true
+    expected_context:
+      surface: crash
+      repo: ym/app
+      error_code: CRASH-9
+      build_id: 1.2.3
+    expected_sub_kbs: [testing]
+    forbidden_values: [crash-bearer-secret, crash-corp-secret]
+    payload:
+      crash:
+        app: ym/app
+        version: 1.2.3
+        issue_id: CRASH-9
+        summary: DEVICE_SEQ 相关崩溃
+        stack_trace: "Authorization: Bearer crash-bearer-secret\ncorpsecret=crash-corp-secret\nDEVICE_SEQ"
+        url: https://crash.example/issue/9?corpsecret=crash-corp-secret
+        platform: android
+        severity: P1
+      sub_kbs: [testing]
+
+  - name: generic_manual_report
+    source: generic
+    expected_valid: true
+    expected_query_ready: true
+    expected_context:
+      surface: generic
+      repo: ym/app
+      error_code: DEVICE_SEQ
+    expected_sub_kbs: [testing]
+    forbidden_values: [generic-refresh-secret]
+    payload:
+      context:
+        repo: ym/app
+        error_code: DEVICE_SEQ
+        error_text: DEVICE_SEQ 手工反馈
+        log_excerpt: "--refresh-token generic-refresh-secret"
+      tags: manual,qa
+      sub_kbs: [testing]

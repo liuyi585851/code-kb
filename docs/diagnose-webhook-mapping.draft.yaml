@@ -1,0 +1,314 @@
+version: 1
+updated_at: 2026-06-11
+status: draft
+
+# 字段路径按顺序逐个匹配。来源专属路径会拼在默认路径前面,
+# 这样新增平台字段不会破坏兼容性。
+sources:
+  default:
+    query_paths:
+      - query
+      - question
+      - diagnostic_query
+    sub_kbs_paths:
+      - sub_kbs
+      - sub_kb
+      - kb
+    submitted_by_hash_paths:
+      - submitted_by_hash
+      - user_id_hash
+      - operator_hash
+    option_paths:
+      top_k:
+        - top_k
+      min_confidence:
+        - min_confidence
+      include_governance:
+        - include_governance
+      allow_duplicate:
+        - allow_duplicate
+    context_paths:
+      repo:
+        - repo
+        - repository.path
+        - repository.full_name
+        - repository.name
+        - project.path
+        - project.name
+      branch:
+        - branch
+        - branch_name
+        - source_branch
+        - ref
+        - git.branch
+        - merge_request.source_branch
+        - mr.source_branch
+      commit:
+        - commit
+        - sha
+        - head_sha
+        - git.commit
+        - merge_request.head_sha
+        - mr.head_sha
+      mr_id:
+        - mr_id
+        - merge_request.id
+        - merge_request.iid
+        - mr.id
+        - mr.iid
+      build_id:
+        - build_id
+        - pipeline_id
+        - run_id
+        - pipeline.id
+        - build.id
+        - job.id
+      job_name:
+        - job_name
+        - job.name
+        - build.job_name
+        - build.name
+        - pipeline.job_name
+      error_code:
+        - error_code
+        - failure_type
+        - status
+        - error.code
+        - failure.code
+      error_text:
+        - error_text
+        - message
+        - summary
+        - error.message
+        - error.text
+        - failure.message
+      log_excerpt:
+        - log_excerpt
+        - log
+        - log_tail
+        - error.log
+        - build.log
+        - job.log
+    link_paths:
+      repo:
+        - repo_url
+        - repository.url
+        - project.url
+      mr:
+        - mr_url
+        - merge_request.url
+        - mr.url
+      build:
+        - build_url
+        - pipeline_url
+        - pipeline.url
+        - build.url
+      job:
+        - job_url
+        - job.url
+    tag_paths:
+      - tags
+      - event
+      - event_type
+      - trigger
+
+  code_review:
+    context_paths:
+      repo:
+        - code_review.repository.path
+        - code_review.repo.path
+        - code_review.repo_path
+        - repo.path_with_namespace
+      branch:
+        - code_review.branch
+        - code_review.merge_request.source_branch
+      commit:
+        - code_review.commit
+        - code_review.sha
+      mr_id:
+        - code_review.merge_request.iid
+        - code_review.mr.iid
+      build_id:
+        - code_review.pipeline.id
+        - code_review.build.id
+      job_name:
+        - code_review.job.name
+      error_code:
+        - code_review.error.code
+        - code_review.failure.code
+      error_text:
+        - code_review.error.message
+        - code_review.failure.message
+      log_excerpt:
+        - code_review.log_tail
+        - code_review.error.log
+        - code_review.failure.log
+    link_paths:
+      repo:
+        - code_review.repository.url
+      mr:
+        - code_review.merge_request.url
+      build:
+        - code_review.pipeline.url
+        - code_review.pipeline_link
+      job:
+        - code_review.job.url
+    tag_paths:
+      - code_review.event
+      - code_review.event_name
+      - code_review.trigger
+    sub_kbs_paths:
+      - code_review.kb_area
+
+  ci:
+    context_paths:
+      repo:
+        - ci.repository.path
+        - ci.project.path
+      branch:
+        - ci.ref
+        - ci.branch
+      commit:
+        - ci.sha
+        - ci.commit
+      build_id:
+        - ci.pipeline.id
+        - ci.build.id
+        - ci.run.id
+      job_name:
+        - ci.job.name
+      error_code:
+        - ci.failure.code
+        - ci.error.code
+      error_text:
+        - ci.failure.message
+        - ci.error.message
+      log_excerpt:
+        - ci.log_tail
+        - ci.job.log
+    link_paths:
+      build:
+        - ci.pipeline.url
+        - ci.build.url
+      job:
+        - ci.job.url
+    tag_paths:
+      - ci.event
+      - ci.trigger
+
+  mr:
+    context_paths:
+      repo:
+        - mr.repository.path
+        - mr.project.path
+      branch:
+        - mr.source_branch
+        - mr.target_branch
+      commit:
+        - mr.head_sha
+      mr_id:
+        - mr.iid
+        - mr.id
+      error_text:
+        - mr.title
+        - mr.description
+    link_paths:
+      mr:
+        - mr.url
+        - mr.web_url
+    tag_paths:
+      - mr.event
+      - mr.state
+
+  issue_tracker:
+    context_paths:
+      repo:
+        - issue_tracker.project.name
+        - issue_tracker.project_id
+        - issue_tracker.workspace.name
+        - workspace.name
+      branch:
+        - issue_tracker.branch
+        - issue_tracker.fix_branch
+      commit:
+        - issue_tracker.commit
+        - issue_tracker.revision
+      build_id:
+        - issue_tracker.build.id
+        - issue_tracker.iteration.id
+      job_name:
+        - issue_tracker.module
+        - issue_tracker.component
+      error_code:
+        - issue_tracker.bug.id
+        - issue_tracker.defect.id
+        - issue_tracker.ticket.id
+        - issue_tracker.priority
+      error_text:
+        - issue_tracker.bug.title
+        - issue_tracker.bug.description
+        - issue_tracker.defect.title
+        - issue_tracker.defect.description
+        - issue_tracker.ticket.title
+        - issue_tracker.ticket.description
+      log_excerpt:
+        - issue_tracker.bug.reproduce_steps
+        - issue_tracker.defect.reproduce_steps
+        - issue_tracker.ticket.detail
+    link_paths:
+      issue_tracker:
+        - issue_tracker.bug.url
+        - issue_tracker.defect.url
+        - issue_tracker.ticket.url
+        - issue_tracker.url
+    tag_paths:
+      - issue_tracker.event
+      - issue_tracker.status
+      - issue_tracker.priority
+      - issue_tracker.module
+
+  crash:
+    context_paths:
+      repo:
+        - crash.app
+        - crash.project
+        - app
+        - project
+      branch:
+        - crash.branch
+        - crash.release_channel
+      commit:
+        - crash.commit
+        - crash.build_sha
+      build_id:
+        - crash.version
+        - crash.build_id
+        - crash.release
+      job_name:
+        - crash.platform
+        - crash.device
+      error_code:
+        - crash.issue_id
+        - crash.signature
+        - crash.exception.type
+      error_text:
+        - crash.title
+        - crash.summary
+        - crash.exception.message
+        - crash.reason
+      log_excerpt:
+        - crash.stack_trace
+        - crash.callstack
+        - crash.log
+    link_paths:
+      crash:
+        - crash.url
+        - crash.issue_url
+        - crash.dashboard_url
+    tag_paths:
+      - crash.event
+      - crash.platform
+      - crash.os
+      - crash.severity
+
+  generic: {}

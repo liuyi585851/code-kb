@@ -1,0 +1,31 @@
+version: 1
+
+# 数据源新鲜度检查的全局兜底值。只有省略此项时,才使用 CLI/API 的 --stale-after-days。
+stale_after_days: 180
+
+# 优先级越高的数据源,可以设更短的新鲜度窗口。
+# 示例:
+#   P0: 120
+stale_after_days_by_priority: {}
+
+# 子 KB 的覆盖配置优先级高于按优先级的覆盖配置。
+stale_after_days_by_sub_kb: {}
+
+# 把注册表里的 owner_group 映射到工单处理人或队列名。
+owner_group_assignees:
+  release: release
+  qa_testing: qa_testing
+  sre_testing: sre_testing
+  engineering: engineering
+
+# 把已停用或已转岗的数据源负责人替换成当前的处理人。
+# 示例:
+#   legacy_owner: release_team
+owner_replacements: {}
+
+# 把特定类型的治理项固定指派给某个处理人。
+# 键可以是 "item_type",也可以是 "sub_kb_id:item_type"。
+item_type_assignees:
+  feedback_badcase: curator
+# 示例:
+#   source_missing: curator

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Code-KB 控制台</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <a class="brand" href="#/ask" aria-label="Code-KB">
+      <span class="spark" aria-hidden="true"></span>
+      <span class="brand-text"><b>Code-KB</b><i>代码知识库</i></span>
+    </a>
+    <nav class="nav" id="nav" aria-label="主导航"></nav>
+    <div class="rail-foot">
+      <span class="dot" id="health-dot" title="系统状态"></span>
+      <span id="health-text" class="muted">检查中…</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="cmd" role="search">
+      <span class="cmd-spark" aria-hidden="true"></span>
+      <input id="cmd-input" type="text" autocomplete="off" aria-label="搜索或提问"
+             placeholder="问点什么，或搜代码 / 符号 / 错误码…  （回车）">
+      <div class="cmd-modes" id="cmd-modes">
+        <button data-mode="ask" class="on" aria-pressed="true">问答</button>
+        <button data-mode="code" aria-pressed="false">代码</button>
+      </div>
+    </header>
+    <section class="view" id="view" tabindex="-1"></section>
+    <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
